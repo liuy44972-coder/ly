@@ -4,7 +4,7 @@
 
 ## 断言写法清单
 
-1. 断言统一用 [helper/assertions.js](../../../helper/assertions.js) 的 `check(actual, '断言说明')`，让断言进入 Allure；示例与防刷屏规则见 [allure.md](allure.md)。
+1. 断言统一用 [helper/assertions.js](../../../../helper/assertions.js) 的 `check(actual, '断言说明')`，让断言进入 Allure；示例与防刷屏规则见 [allure.md](allure.md)。
 2. 成功场景：HTTP 状态码、业务码、关键字段、数据类型都要断言；不用「响应存在」代替业务断言。
 3. 异常场景：断言实际 HTTP 状态码、业务码与错误字段。
 4. 变更字段必须有正向断言；删除字段必须有「不存在」断言。

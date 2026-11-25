@@ -9,7 +9,7 @@
 - 幂等操作要断言重复调用前后数据不变；
 - 文档未定义的状态组合标记 `blocked`，不要靠实测结果反向补文档。
 
-示例（存档回退，见 [helper/rollback.js](../../../helper/rollback.js)）：
+示例（存档回退，见 [helper/rollback.js](../../../../helper/rollback.js)）：
 
 | 当前状态 | `rollback/fetch` | `rollback/confirm` |
 | --- | --- | --- |

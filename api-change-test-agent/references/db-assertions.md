@@ -1,6 +1,6 @@
 # 数据库断言
 
-需要校验落库结果时，复用 [testcases/db/_readonly.js](../../../testcases/db/_readonly.js)，不要新建连接或写操作。
+需要校验落库结果时，复用 [testcases/db/_readonly.js](../../../../testcases/db/_readonly.js)，不要新建连接或写操作。
 
 断言至少覆盖以下维度，缺哪一项要在待确认项里说明原因：
 
