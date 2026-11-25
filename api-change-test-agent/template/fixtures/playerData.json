@@ -1,0 +1,16 @@
+{
+  "login": {
+    "device": "test-device",
+    "channel": "",
+    "channelId": "",
+    "platform": "test-platform",
+    "timezone": 8,
+    "query": {
+      "ts": "0",
+      "commit": "0",
+      "version": "0.0.0",
+      "apiversion": "0",
+      "resVersion": "0.0.0"
+    }
+  }
+}

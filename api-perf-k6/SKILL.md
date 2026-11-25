@@ -27,8 +27,8 @@ description: "基于 k6 的接口性能测试：选择场景、配置负载模�
 
 ## 项目现状
 
-- 入口脚本：[scripts/perf.sh](file:///Users/ttwj/Desktop/APIauto/scripts/perf.sh)，按 `TEST_PROFILE` 加载 `.env` + `.env.<profile>`，按场景执行 k6
-- 公共能力：[perf/lib/common.js](file:///Users/ttwj/Desktop/APIauto/perf/lib/common.js)（负载模型、阈值、校验、汇总）、[perf/lib/http.js](file:///Users/ttwj/Desktop/APIauto/perf/lib/http.js)（统一请求）、[perf/lib/auth.js](file:///Users/ttwj/Desktop/APIauto/perf/lib/auth.js)（登录/多账号）、[perf/lib/login.js](file:///Users/ttwj/Desktop/APIauto/perf/lib/login.js)
+- 入口脚本：[scripts/perf.sh](../../../scripts/perf.sh)，按 `TEST_PROFILE` 加载 `.env` + `.env.<profile>`，按场景执行 k6
+- 公共能力：[perf/lib/common.js](../../../perf/lib/common.js)（负载模型、阈值、校验、汇总）、[perf/lib/http.js](../../../perf/lib/http.js)（统一请求）、[perf/lib/auth.js](../../../perf/lib/auth.js)（登录/多账号）、[perf/lib/login.js](../../../perf/lib/login.js)
 - 场景目录 `perf/`：`configs`、`notice`、`privacy`、`ping`、`info`、`mail`、`queryDecoded`（仅 mf）、`rankList`（仅 mf/nova）、`login`（不进入 `all`）
 - 结果目录 `perf-results/`，文件名 `<profile>-<api>-<时间戳>.json`
 
@@ -56,7 +56,7 @@ description: "基于 k6 的接口性能测试：选择场景、配置负载模�
 
 压测参数必须与功能用例一致，不能拍脑袋：
 
-- 路径以 [config/endpoints.js](file:///Users/ttwj/Desktop/APIauto/config/endpoints.js) 为准
+- 路径以 [config/endpoints.js](../../../config/endpoints.js) 为准
 - 版本、活动 ID、userId 等取自对应 `testcases/<profile>-all/*.spec.js` 的默认值与 `.env.<profile>`
 - 取值顺序为「接口专属变量 → 项目级 `CLIENT_VERSION`/`API_VERSION` → 脚本默认值」，由 `firstEnv()` 实现
 - 鉴权优先 `PERF_TOKENS`/`PERF_COOKIES`，未配置时 setup 阶段自动登录

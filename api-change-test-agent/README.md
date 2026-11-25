@@ -28,6 +28,18 @@
 ```text
 api-change-test-agent/
 ├── SKILL.md                         主文件：角色、阶段约束、DoD、安全规则
+├── README.md                        本文件
+├── template/                        最小可运行工程骨架（克隆后可直接复制使用）
+│   ├── bootstrap.sh                 复制骨架到目标项目并生成 .env
+│   ├── package.json                 Jest / Allure / Supertest 依赖与 scripts
+│   ├── jest.config.js               测试根目录与 setup 配置
+│   ├── .env.example                 环境变量模板
+│   ├── config/                      endpoints、responseCodes、testConfig、jest.setup
+│   ├── helper/                      apiClient、auth、assertions
+│   ├── fixtures/                    非敏感固定测试数据
+│   ├── scripts/                     selfcheck.js、check-case-index.js
+│   ├── testcases/dev- smoke/        冒烟示例用例（notice）
+│   └── tests/cases/                 用例索引表骨架
 └── references/
     ├── allure.md                    Allure 报告生成、展示与质量要求
     ├── db-assertions.md             只读数据库断言的维度与白名单
@@ -58,6 +70,32 @@ api-change-test-agent/
 - 「按这份接口文档生成 Jest 用例并跑一遍出 Allure 报告」
 - 「pay 接口新增了错误码 695，补测试并验证」
 
+## 快速开始（3 步）
+
+克隆后不需要宿主项目已有脚手架，`template/` 自带最小可运行工程：
+
+```bash
+# 1. 复制骨架到项目根（已存在的文件不会被覆盖）
+bash .trae/skills/api-change-test-agent/template/bootstrap.sh /path/to/your-project
+
+# 2. 安装依赖
+cd /path/to/your-project && npm install
+
+# 3. 填基址后自检（需至少配置 API_BASE_URL）
+#    编辑 .env：API_BASE_URL=https://your-test-host.example.com
+npm run selfcheck
+```
+
+三项都通过后即可跑示例用例与出报告：
+
+```bash
+npm run test:smoke      # 跑 testcases/dev- smoke
+npm run test:report     # 执行并生成 Allure 结果
+npm run allure:open     # 打开 Allure 报告
+```
+
+复制后需要按实际项目替换三处：`config/endpoints.js` 的接口路径、`config/responseCodes.js` 的业务码、`.env` 的基址与鉴权。
+
 ## 内嵌能力（vendor）
 
 本 skill 自带三个下游能力的内嵌副本，只加载本 skill 即可走完整流程；三个独立 skill 仍然保留，可单独调用。
@@ -80,20 +118,30 @@ api-change-test-agent/
 - 失败只报告：断言不通过时不得私自改断言、用例、fixtures 或门控，先给归因与选项
 - 脱敏：不输出 Token、Cookie、支付凭证等敏感值，日志与报告附件必须打码
 
-## 宿主项目依赖
+## 宿主项目依赖（有则复用，无则用 template）
 
-本 skill 假定宿主工程已经具备以下约定（移植到其他项目时需要对应替换）：
+阶段零会先探测工程形态，三种模式走同一套流程：
+
+| 形态 | 判定 | 处理 |
+|---|---|---|
+| 完整 | endpoints / apiClient / jest.config 全在 | 直接复用宿主约定 |
+| 精简 | 有部分脚手架但不完整 | 只补缺失部分，`scripts` 合并不覆盖 |
+| 自包含 | 无任何脚手架 | 复制 `template/` 骨架，用骨架自带脚本自检与校验索引 |
+
+宿主工程具备以下约定时可直接复用（移植到其他项目时对应替换）：
 
 | 约定 | 说明 |
 |---|---|
 | `config/endpoints.js` / `config/responseCodes.js` | 接口路径与业务码常量的唯一来源 |
 | `config/testConfig.js` + `.env.<profile>` | `TEST_PROFILE=nova\|mc\|mf` 决定加载的环境配置 |
 | `helper/apiClient.js` / `helper/auth.js` | 请求客户端与运行时 Token/Cookie |
-| `helper/assertions.js` / `helper/allure-request.js` | 断言包装与 Allure 附件脱敏 |
+| `helper/assertions.js` / `helper/allure-request.js` | 断言包装与 Allure 附件脱敏（后者模板未提供，按需自建） |
 | `fixtures/` | 非敏感固定测试数据 |
 | `testcases/<需求>/` + 环境目录薄挂载 | 用例分层与维护点 |
 | `tests/cases/接口及接口用例汇总.md` | 全仓用例索引 |
 | npm scripts | `selfcheck`（环境自检）、`cases:check` / `cases:check:strict`（索引校验）、`test:report:dir`（生成报告） |
+
+缺少对应 npm script 时：自包含模式用 `node scripts/selfcheck.js`、`node scripts/check-case-index.js`；精简模式跳过并在输出中标注「未自检」/「索引未校验」。
 
 ## 参考文档
 
@@ -108,5 +156,6 @@ api-change-test-agent/
 | 写用例 ID、文档骨架或做自评审 | [references/text-case-design.md](references/text-case-design.md) |
 | 配置或排查门控变量 | [references/env-gates.md](references/env-gates.md) |
 | 写用例正文、断言、数据还原 | [references/test-writing.md](references/test-writing.md) |
+| 从零搭最小工程骨架 | [template/README.md](template/README.md) |
 
 完整约束与阶段细节见 [SKILL.md](SKILL.md)。

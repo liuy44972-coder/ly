@@ -19,8 +19,8 @@ description: "统计接口自动化测试覆盖率，分析接口路径、成功
 
 ## 触发时的工作流程
 
-1. 读取正式接口契约 [config/apiContract.js](file:///Users/ttwj/Desktop/APIauto/config/apiContract.js)，其中包含服务、HTTP 方法、归一化路径和每个接口的必测场景。
-2. 使用 [config/endpoints.js](file:///Users/ttwj/Desktop/APIauto/config/endpoints.js) 解析路径函数和接口名称；如果两者不一致，报告契约漂移，不自动覆盖。
+1. 读取正式接口契约 `config/apiContract.js`，其中包含服务、HTTP 方法、归一化路径和每个接口的必测场景。
+2. 使用 `config/endpoints.js` 解析路径函数和接口名称；如果两者不一致，报告契约漂移，不自动覆盖。
 3. 扫描 `testcases/**/*.spec.js`，识别：
    - `endpoints.<name>` 引用
    - 字符串形式的接口路径
@@ -74,7 +74,7 @@ description: "统计接口自动化测试覆盖率，分析接口路径、成功
 已覆盖场景数 / 计划场景总数 × 100%
 ```
 
-正式场景矩阵以 [config/apiContract.js](file:///Users/ttwj/Desktop/APIauto/config/apiContract.js) 每个接口的 `scenarios` 为准；测试代码只能证明场景是否被覆盖，不能改变必测场景集合。若契约缺少场景定义，才允许使用代码推断口径，并必须标记为“非正式矩阵”。
+正式场景矩阵以 `config/apiContract.js` 每个接口的 `scenarios` 为准；测试代码只能证明场景是否被覆盖，不能改变必测场景集合。若契约缺少场景定义，才允许使用代码推断口径，并必须标记为“非正式矩阵”。
 
 ### 接口覆盖状态
 
@@ -112,9 +112,9 @@ description: "统计接口自动化测试覆盖率，分析接口路径、成功
 
 ## 项目适配规则
 
-- 正式契约优先使用 [config/apiContract.js](file:///Users/ttwj/Desktop/APIauto/config/apiContract.js)。
-- 路径和函数定义使用 [config/endpoints.js](file:///Users/ttwj/Desktop/APIauto/config/endpoints.js)。
-- Smoke 测试目录为 [testcases/smoke](file:///Users/ttwj/Desktop/APIauto/testcases/smoke)。
+- 正式契约优先使用 `config/apiContract.js`。
+- 路径和函数定义使用 `config/endpoints.js`。
+- Smoke 测试目录为 `testcases/smoke`。
 - 全量接口测试目录为 `testcases/all`（存在时扫描）。
 - 回归接口测试目录为 `testcases/regression`（存在时扫描）。
 - 数据库辅助校验目录为 `testcases/db`，单独统计，不把数据库查询当作接口请求。

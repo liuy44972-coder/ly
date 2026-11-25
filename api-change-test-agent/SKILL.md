@@ -25,6 +25,7 @@ description: "根据接口改动文档、口述、截图或抓包分析契约变
 - `fixtures/`：非敏感测试数据（`playerData.json`、`rollbackData.json`、`gmDecodedData.json`、`redeemCodeData.json` 等）
 - 测试分层：`testcases/<环境>- smoke/`、`testcases/<环境>-all/`、`testcases/regression/`、`testcases/db/`，以及按需求聚合的目录
 - `tests/cases/`：中文文字用例；`tests/cases/接口及接口用例汇总.md`：全仓用例索引
+- 宿主项目没有上述脚手架时的最小骨架：[template/README.md](template/README.md)，用 `bash template/bootstrap.sh <项目根>` 复制后补齐 `.env`
 
 按需求聚合的目录不固定，已存在的有 `testcases/回退/`、`testcases/mf序列化/`、`testcases/兑换码/`、`testcases/pay优化/`。新增需求时新建一个聚合目录即可，不要往环境目录里塞用例。
 
@@ -155,6 +156,23 @@ git diff -- <路由目录> <校验/服务目录>
 - 文档写了、代码没实现的，标 `conflict` 并先报冲突，不按文档单方面写用例；
 - 没拿到 diff 且文档不足以确认方法/路径时，按阶段一准入条件停下来问，不要靠路径命名习惯推测（如猜 `/api/xxx` 前缀）。
 
+工程形态探测（每个项目只做一次，结论写进输出，不要假定宿主项目已有脚手架）：
+
+```bash
+ls config/endpoints.js helper/apiClient.js jest.config.js package.json 2>/dev/null
+node -e "console.log(Object.keys(require('./package.json').scripts||{}).join(','))" 2>/dev/null
+```
+
+| 模式 | 判定 | 后续行为 |
+|---|---|---|
+| 完整 | 路径文件、`jest.config.js` 与 `selfcheck`/`cases:check` scripts 都在 | 复用现有封装，按阶段五、六正常执行 |
+| 精简 | 只有部分存在 | 只复用存在的封装；缺失的客户端/断言在用例内就地实现，不新建平行 helper；输出列出缺失项 |
+| 自包含 | 全都没有 | 复制本 skill 的 `template/`（`bash template/bootstrap.sh <项目根>`）后按完整模式执行；用户拒绝建骨架时，只输出用例与自包含脚本片段，并明确标注「未执行」 |
+
+- 骨架含 `config/`、`helper/`、`scripts/`、`jest.config.js`、`package.json`、`.env.example` 与示例用例，复制前确认目标目录无同名冲突；
+- `template/package.json` 的 scripts 合并进宿主 `package.json`，不覆盖原有 scripts；
+- 自包含模式下客户端、鉴权、断言全部来自骨架，禁止再假定其它项目私有封装。
+
 ## 阶段一：解析变更
 
 必须先建立变更清单，至少包含：
@@ -281,7 +299,7 @@ git diff -- <路由目录> <校验/服务目录>
 
 - 格式：`TC-<模块>[-<子模块>]-NNN`；测试名以唯一用例 ID 开头，跨目录复用时 ID 与语义必须一致；
 - 新增、删除、修改用例时，同一次改动内同步文字用例与 `tests/cases/接口及接口用例汇总.md`；
-- 交付前运行 `npm run cases:check`：报告模式只提示问题、不阻塞；确认本次改动没有新增「同目录重复定义」与「Smoke 索引缺失」，存量问题在输出中单列。存量清理完成后改用 `npm run cases:check:strict` 作为门禁；
+- 交付前运行 `npm run cases:check`：报告模式只提示问题、不阻塞；确认本次改动没有新增「同目录重复定义」与「Smoke 索引缺失」，存量问题在输出中单列。存量清理完成后改用 `npm run cases:check:strict` 作为门禁；项目没有该 script 时，自包含模式执行 `node scripts/check-case-index.js`，精简模式跳过并在输出中标注「索引未校验」；
 - 冒烟目录编号、薄挂载编号判定与自评审清单见 [references/text-case-design.md](references/text-case-design.md)。
 
 ### 5.2 状态机与状态门控
@@ -323,7 +341,7 @@ git diff -- <路由目录> <校验/服务目录>
 5. 改动路径 ESLint 通过，目标用例已执行且失败原因已分类；
 6. Allure 报告已生成，用例正文可见「请求 / 响应」步骤（请求参数、响应体）与「断言：xxx」步骤（matcher/expected/actual），并在回复中给出可点击链接（或交互式地址）；被前置门控而 skipped 的用例没有请求/断言步骤属正常，但必须在待确认项说明原因；
 7. 报告分析已给出归因表与结论行（通过率、是否可交付、阻塞项）；判定为服务真实缺陷时已按 `references/defect-report.md` 出缺陷单，其他失败项已标注「未擅自修改，等待确认」；
-8. 已运行 `npm run cases:check`，并在「执行结果」中写明本次改动是否引入新的同目录重号或 Smoke 索引缺失、存量问题有多少；
+8. 已运行 `npm run cases:check`（无该 script 时按阶段零模式处理并在输出注明），并在「执行结果」中写明本次改动是否引入新的同目录重号或 Smoke 索引缺失、存量问题有多少；
 9. 交付前已执行 `bash scripts/sync-skill-vendor.sh --check`，vendor 副本与独立 skill 一致；不一致时先同步再交付。
 
 ## 阶段六：环境与执行
@@ -332,7 +350,7 @@ git diff -- <路由目录> <校验/服务目录>
 - **串行执行**：远程用例、尤其会争用同一账号/单据/兑换码的用例必须 `--runInBand`；禁止 `test.concurrent`，禁止同时跑多个环境目录；
 - **静态检查只针对改动路径**：`npx eslint "<改动文件或目录>"`，全仓 `npm run lint` 有历史遗留错误，不作为本次失败依据；
 - 执行前必须过「基址可达 / 鉴权有效 / 版本与门控 / 数据同源」四项自检，再按单文件 → 本地 → 目标 Smoke 的顺序执行；
-- 自检用 `TEST_PROFILE=<profile> npm run selfcheck`（脚本 `scripts/selfcheck.js`，只读、不自动登录，需登录时加 `--login`）；出现 `FAIL` 即停并按「环境问题」报告，`SKIP` 必须写明原因，禁止把 `FAIL` 改写成用例失败或跳过；
+- 自检用 `TEST_PROFILE=<profile> npm run selfcheck`（脚本 `scripts/selfcheck.js`，只读、不自动登录，需登录时加 `--login`）；出现 `FAIL` 即停并按「环境问题」报告，`SKIP` 必须写明原因，禁止把 `FAIL` 改写成用例失败或跳过；项目没有该 script 时，自包含模式用骨架脚本 `node scripts/selfcheck.js`，精简模式跳过并在输出中标注「未自检」；
 - 远程测试失败时按固定顺序定位：**环境/网络 → 鉴权 → 前置数据 → 契约变化 → 断言写错**，前一层成立就停在该层，不要把环境问题写成断言问题；
 - 重试边界：网络错误/超时最多重试 1 次；业务码失败禁止重试；兑换码、单据、邮件等一次性资源永不重试（见 5.4）。
 
