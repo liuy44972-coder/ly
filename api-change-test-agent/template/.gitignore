@@ -4,4 +4,5 @@ node_modules/
 !.env.example
 allure-results/
 allure-report/
+perf-results/
 coverage/

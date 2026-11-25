@@ -1,0 +1,64 @@
+name: api-report
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 环境标识，对应 .env.<profile>
+        required: true
+        default: dev
+      path:
+        description: 要执行的测试目录
+        required: true
+        default: testcases/dev- smoke
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TEST_PROFILE: ${{ inputs.profile }}
+      TEST_ENV: ${{ inputs.profile }}
+      # 消耗类开关在 CI 中保持关闭
+      REDEEM_ALLOW_REDEEM: 'false'
+      ROLLBACK_E2E: 'false'
+      ALLURE_NO_ANALYTICS: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 安装依赖
+        run: npm install --no-audit --no-fund
+
+      - name: 写入环境文件
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+        run: |
+          if [ -z "$API_BASE_URL" ]; then
+            echo "缺少仓库 Secrets：API_BASE_URL" >&2
+            exit 1
+          fi
+          {
+            echo "TEST_ENV=$TEST_PROFILE"
+            echo "API_BASE_URL=$API_BASE_URL"
+            echo "API_TOKEN=$API_TOKEN"
+            echo "CLIENT_VERSION=${CLIENT_VERSION:-0.0.0}"
+            echo "CLIENT_COMMIT=${CLIENT_COMMIT:-0}"
+            echo "API_VERSION=${API_VERSION:-0}"
+          } > ".env.$TEST_PROFILE"
+
+      - name: 执行并生成报告
+        run: npm run test:report:dir -- --path="${{ inputs.path }}"
+
+      - name: 上传 Allure 报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ inputs.profile }}
+          path: allure-report
+          retention-days: 14
+          if-no-files-found: warn

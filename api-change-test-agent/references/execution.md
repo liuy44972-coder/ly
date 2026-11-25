@@ -40,7 +40,7 @@ TEST_PROFILE=<nova|mc|mf> npm run selfcheck -- --login  # 无 API_TOKEN 时显�
 CI 只跑可重复、无一次性资源的用例；真实环境报告用手动触发。
 
 - 工作流：[.github/workflows/api-report.yml](../../../../.github/workflows/api-report.yml)，`workflow_dispatch` 触发，输入 `profile` 与 `path`；
-- 命令：`TEST_PROFILE=<profile> npm run test:report:dir --path="testcases/<目录>"`；
+- 命令：`TEST_PROFILE=<profile> npm run test:report:dir -- --path="testcases/<目录>"`（`--` 必须保留，否则 npm 会把 `--path` 当成自身配置）；
 - 产物：`allure-report/` 以 artifact 上传（`if: always()`，保留 14 天），测试失败也要拿到报告，再由最后一步把 job 标红；
 - 凭据：`API_BASE_URL`、`API_TOKEN` 等只从仓库 Secrets 读取，禁止写进工作流或提交 `.env.*`；
 - 消耗类开关（`REDEEM_ALLOW_REDEEM`、`ROLLBACK_E2E`）在 CI 中保持关闭，需要时人工本地执行。

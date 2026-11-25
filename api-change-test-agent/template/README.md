@@ -21,8 +21,13 @@ npm run selfcheck
 ```bash
 npm run test:smoke     # 执行 testcases/dev- smoke
 npm run test:report    # 执行并生成 allure-report
+npm run test:report:dir -- --path="testcases/dev- all"   # 按目录执行并出报告（CI 用）
 npm run cases:check    # 检查用例 ID 与索引一致性
+npm run perf:smoke     # k6 冒烟压测，需本机安装 k6
+npm run perf:all       # 全场景压测，负载模型见 perf/lib/common.js
 ```
+
+`--` 不能省略，否则 npm 会把 `--path` 当成自身配置。压测场景只压只读接口，鉴权优先读 `PERF_TOKENS`/`PERF_COOKIES`，都没有时才在 setup 阶段登录。
 
 默认读取 `.env`。需要多环境时自建 `.env.<profile>` 并用 `TEST_PROFILE=<profile> npm run test:smoke` 覆盖，例如 `TEST_PROFILE=mc`。
 
@@ -43,9 +48,25 @@ npm run cases:check    # 检查用例 ID 与索引一致性
 | `helper/payOrder.js` | 带状态业务的请求封装参考（路径需替换） |
 | `scripts/selfcheck.js` | 基址/鉴权/版本/数据同源四项自检 |
 | `scripts/check-case-index.js` | 用例 ID 与索引一致性检查 |
-| `testcases/dev- smoke/notice.spec.js` | 可运行的示例用例 |
+| `scripts/report-dir.js` | 按目录执行并生成 Allure 报告 |
+| `scripts/perf.sh` | k6 压测入口，按 `TEST_PROFILE` 加载 env |
+| `testcases/notice/notice.spec.js` | 用例维护点，环境目录只 require 这里 |
+| `testcases/dev- smoke/` | 冒烟薄挂载 |
+| `testcases/dev- all/` | 环境全量薄挂载 |
+| `testcases/regression/` | 回归薄挂载 |
 | `testcases/db/_readonly.js` | 只读数据库查询与 PROJECTION 白名单（未配 DB 时标记 blocked） |
+| `perf/config.js`、`perf/notice.js`、`perf/lib/` | 压测场景、公共负载模型、请求与鉴权封装 |
+| `.github/workflows/api-report.yml` | 手动触发的报告流水线，产物保留 14 天 |
 | `tests/cases/接口及接口用例汇总.md` | 7 列索引模板 |
+
+## CI
+
+`.github/workflows/api-report.yml` 为手动触发（`workflow_dispatch`）：
+
+- 输入 `profile`（默认 `dev`）与 `path`（默认 `testcases/dev- smoke`）；
+- 仓库 Secrets 只放 `API_BASE_URL`、`API_TOKEN`，工作流据此生成 `.env.<profile>`，不提交任何 env 文件；
+- 报告以 artifact 上传（`if: always()`，保留 14 天），用例失败仍能拿到报告，job 最终标红；
+- `REDEEM_ALLOW_REDEEM`、`ROLLBACK_E2E` 等消耗类开关在 CI 中固定关闭。
 
 ## 需要替换的三处
 
@@ -56,5 +77,5 @@ npm run cases:check    # 检查用例 ID 与索引一致性
 ## 约定
 
 - 默认读 `.env`；需要多环境再建 `.env.<profile>`，用 `TEST_PROFILE=<profile>` 切换，例如 `TEST_PROFILE=dev npm test`。
-- `testcases/<环境>- smoke/` 是冒烟目录，薄挂载文件只 `require`，不重复定义用例。
+- 用例唯一维护点是需求目录（如 `testcases/notice/`）；`<环境>- smoke/`、`<环境>-all/`、`regression/` 只做薄挂载，用 `require` 引用，不重复定义用例。
 - 自检默认不自动登录；需要时设 `SELFCHECK_LOGIN=true`，会改动测试账号最后登录设备。

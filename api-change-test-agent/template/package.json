@@ -10,6 +10,10 @@
     "test": "jest --runInBand",
     "test:smoke": "jest \"testcases/dev- smoke\" --runInBand",
     "test:report": "rm -rf allure-results allure-report; jest \"testcases/dev- smoke\" --runInBand --reporters=default --reporters=jest-allure2-reporter; node -e \"process.exit(0)\"; npm run allure:generate",
+    "test:report:dir": "node scripts/report-dir.js",
+    "perf:smoke": "cross-env PERF_SMOKE=true bash scripts/perf.sh all",
+    "perf:notice": "bash scripts/perf.sh notice",
+    "perf:all": "bash scripts/perf.sh all",
     "allure:generate": "cross-env ALLURE_NO_ANALYTICS=1 allure generate allure-results --clean -o allure-report",
     "allure:open": "allure open allure-report"
   },

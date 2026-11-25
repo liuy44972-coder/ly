@@ -34,11 +34,13 @@ api-change-test-agent/
 │   ├── package.json                 Jest / Allure / Supertest 依赖与 scripts
 │   ├── jest.config.js               测试根目录与 setup 配置
 │   ├── .env.example                 环境变量模板
-│   ├── config/                      endpoints、responseCodes、testConfig、jest.setup
-│   ├── helper/                      apiClient、auth、assertions
+│   ├── config/                      endpoints、responseCodes、apiContract、testConfig、jest.setup
+│   ├── helper/                      apiClient、auth、assertions、allure-request、rollback、payOrder
 │   ├── fixtures/                    非敏感固定测试数据
-│   ├── scripts/                     selfcheck.js、check-case-index.js
-│   ├── testcases/dev- smoke/        冒烟示例用例（notice）
+│   ├── scripts/                     selfcheck.js、check-case-index.js、report-dir.js、perf.sh
+│   ├── perf/                        k6 场景与公共负载模型、请求/鉴权封装
+│   ├── testcases/                   notice（维护点）、dev- smoke、dev- all、regression、db
+│   ├── .github/workflows/           api-report.yml 手动触发报告流水线
 │   └── tests/cases/                 用例索引表骨架
 └── references/
     ├── allure.md                    Allure 报告生成、展示与质量要求
