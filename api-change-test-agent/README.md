@@ -70,7 +70,20 @@ api-change-test-agent/
 - 「按这份接口文档生成 Jest 用例并跑一遍出 Allure 报告」
 - 「pay 接口新增了错误码 695，补测试并验证」
 
-## 快速开始（3 步）
+## 一条命令安装
+
+在克隆下来的仓库根执行，等价于「放入 `.trae/skills/` + 复制工程骨架 + 装依赖 + 自检」：
+
+```bash
+bash install.sh /path/to/your-project
+```
+
+- 可选参数：`--no-install` 跳过依赖安装，`--no-skeleton` 只装 skill 不建骨架
+- 已存在的文件不会被覆盖，脚本可重复执行
+- `.env` 的 `API_BASE_URL` 仍是占位值时自动跳过自检，避免误报失败
+- 同时安装另外 4 个 skill：`api-coverage`、`api-perf-k6`、`senior-qa-brain`、`api-case-to-jest-supertest`
+
+## 快速开始（3 步，手动）
 
 克隆后不需要宿主项目已有脚手架，`template/` 自带最小可运行工程：
 
