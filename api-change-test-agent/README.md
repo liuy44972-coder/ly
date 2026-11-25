@@ -109,6 +109,8 @@ npm run allure:open     # 打开 Allure 报告
 
 复制后需要按实际项目替换三处：`config/endpoints.js` 的接口路径、`config/responseCodes.js` 的业务码、`.env` 的基址与鉴权。
 
+默认读 `.env`；要区分多套环境时再建 `.env.<profile>`，用 `TEST_PROFILE=<profile> npm run test:smoke` 切换。
+
 ## 内嵌能力（vendor）
 
 本 skill 自带三个下游能力的内嵌副本，只加载本 skill 即可走完整流程；三个独立 skill 仍然保留，可单独调用。
@@ -148,7 +150,7 @@ npm run allure:open     # 打开 Allure 报告
 | `config/endpoints.js` / `config/responseCodes.js` | 接口路径与业务码常量的唯一来源 |
 | `config/testConfig.js` + `.env.<profile>` | `TEST_PROFILE=nova\|mc\|mf` 决定加载的环境配置 |
 | `helper/apiClient.js` / `helper/auth.js` | 请求客户端与运行时 Token/Cookie |
-| `helper/assertions.js` / `helper/allure-request.js` | 断言包装与 Allure 附件脱敏（后者模板未提供，按需自建） |
+| `helper/assertions.js` / `helper/allure-request.js` | 断言包装与 Allure 附件脱敏 |
 | `fixtures/` | 非敏感固定测试数据 |
 | `testcases/<需求>/` + 环境目录薄挂载 | 用例分层与维护点 |
 | `tests/cases/接口及接口用例汇总.md` | 全仓用例索引 |
