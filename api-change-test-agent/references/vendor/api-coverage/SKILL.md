@@ -1,0 +1,149 @@
+---
+name: "api-coverage"
+description: "统计接口自动化测试覆盖率，分析接口路径、成功与异常场景及未覆盖项。用户要求接口覆盖率、测试覆盖分析或覆盖率报告时调用。"
+---
+
+# API Coverage
+
+## 目标
+
+针对当前 Node.js/Jest 接口自动化项目，统计接口自动化覆盖率，重点覆盖：
+
+- 接口路径覆盖率
+- 接口与 HTTP 方法覆盖率
+- 成功场景与异常场景覆盖率
+- 鉴权、参数校验、错误方法、错误 Content-Type 等场景覆盖率
+- 已覆盖接口、部分覆盖接口和未覆盖接口
+
+不要把 Istanbul/Jest 的 JavaScript 代码覆盖率当作接口覆盖率。接口覆盖率必须基于接口契约与测试用例映射分析。
+
+## 触发时的工作流程
+
+1. 读取正式接口契约 [config/apiContract.js](file:///Users/ttwj/Desktop/APIauto/config/apiContract.js)，其中包含服务、HTTP 方法、归一化路径和每个接口的必测场景。
+2. 使用 [config/endpoints.js](file:///Users/ttwj/Desktop/APIauto/config/endpoints.js) 解析路径函数和接口名称；如果两者不一致，报告契约漂移，不自动覆盖。
+3. 扫描 `testcases/**/*.spec.js`，识别：
+   - `endpoints.<name>` 引用
+   - 字符串形式的接口路径
+   - HTTP 方法调用，如 `.get()`、`.post()`、`.put()`、`.delete()`、`.patch()`
+   - 测试名称中的用例编号和业务场景
+4. 将测试请求归一化为 `HTTP_METHOD + PATH`，处理动态路径，例如把 `/api/mail/:mailId` 归一化为 `/api/mail/{mailId}`。
+5. 建立“接口清单—测试文件—测试用例”的映射。
+6. 根据测试名称、请求参数和断言识别场景标签，并与契约中的 `scenarios` 逐项比对。
+7. 输出覆盖率汇总和明细，不执行会消耗订单、邮件或其他远程业务数据的测试，除非用户明确要求运行测试。
+
+## 场景识别规则
+
+为每个接口统计以下场景，能明确识别时才标记为已覆盖：
+
+- `success`：合法参数并断言成功业务码
+- `missing-param`：缺少必填 Query、Body 或路径参数
+- `empty-param`：空字符串、空数组或空对象
+- `null-param`：参数为 `null`
+- `invalid-type`：参数类型错误
+- `auth-missing`：缺少 Cookie、Token 或其他鉴权信息
+- `auth-invalid`：无效 Cookie、Token 或鉴权信息
+- `method-error`：错误 HTTP 方法
+- `content-type-error`：错误 Content-Type
+- `boundary`：边界值、回退值或版本兼容场景
+- `idempotency`：重复请求、重复提交或幂等性场景
+- `database`：接口与数据库状态联动校验
+
+如果只能从代码推断请求存在，但无法确认断言验证了对应场景，应标记为“疑似覆盖”，不要直接计入有效覆盖。
+
+## 统计口径
+
+### 接口路径覆盖率
+
+```text
+已覆盖接口路径数 / 接口清单总路径数 × 100%
+```
+
+至少有一个有效测试请求和断言，才算路径已覆盖。
+
+### 方法覆盖率
+
+```text
+已覆盖 HTTP 方法数 / 接口清单中的 HTTP 方法总数 × 100%
+```
+
+如果接口清单没有定义方法，不要擅自推断完整方法集合；应报告为“方法契约缺失”。
+
+### 场景覆盖率
+
+```text
+已覆盖场景数 / 计划场景总数 × 100%
+```
+
+正式场景矩阵以 [config/apiContract.js](file:///Users/ttwj/Desktop/APIauto/config/apiContract.js) 每个接口的 `scenarios` 为准；测试代码只能证明场景是否被覆盖，不能改变必测场景集合。若契约缺少场景定义，才允许使用代码推断口径，并必须标记为“非正式矩阵”。
+
+### 接口覆盖状态
+
+- `Covered`：路径、方法、核心断言和契约中全部必测场景均已覆盖
+- `Partial`：有请求覆盖，但缺少契约矩阵中的关键成功或异常场景
+- `Uncovered`：接口清单中存在，但没有找到有效测试映射
+- `Unknown`：路径或方法无法可靠归一化，需要人工确认
+
+## 输出格式
+
+报告使用中文，结构如下：
+
+1. **统计口径**
+   - 扫描目录
+   - 接口清单来源
+   - 是否包含动态路径
+   - 是否执行测试
+2. **总体汇总**
+   - 接口总数
+   - 已覆盖、部分覆盖、未覆盖、无法确认数量
+   - 路径覆盖率
+   - 方法覆盖率（如可计算）
+   - 场景覆盖率
+3. **接口覆盖明细表**
+
+| 状态 | 方法 | 路径 | 测试文件 | 用例数量 | 已识别场景 | 缺失场景 |
+|---|---|---|---|---:|---|---|
+
+4. **未覆盖接口**
+5. **部分覆盖接口及建议**
+6. **重复或无法归一化的请求**
+7. **风险说明**
+
+文件引用必须使用可点击的 `file:///` 链接，并带上相关行号。不得在报告中输出 Token、Cookie、Authorization、MongoDB URI、支付 Token 或其他敏感值；如扫描到敏感配置，只报告“发现敏感配置，已脱敏”。
+
+## 项目适配规则
+
+- 正式契约优先使用 [config/apiContract.js](file:///Users/ttwj/Desktop/APIauto/config/apiContract.js)。
+- 路径和函数定义使用 [config/endpoints.js](file:///Users/ttwj/Desktop/APIauto/config/endpoints.js)。
+- Smoke 测试目录为 [testcases/smoke](file:///Users/ttwj/Desktop/APIauto/testcases/smoke)。
+- 全量接口测试目录为 `testcases/all`（存在时扫描）。
+- 回归接口测试目录为 `testcases/regression`（存在时扫描）。
+- 数据库辅助校验目录为 `testcases/db`，单独统计，不把数据库查询当作接口请求。
+- 对 `config/endpoints.js` 中的函数路径，如 `claimMail(mailId)`，统一显示为 `/api/mail/{mailId}`。
+- 对测试中直接拼接的 URL，保留原始路径并标记为“非集中式接口定义”。
+- `health`、本地 Express 路由和远程 API 应分别统计，不能混为同一服务的接口覆盖率。
+
+## 质量要求
+
+- 不能只按测试文件数量计算覆盖率。
+- 同一个接口的多个测试用例应合并到同一接口条目下。
+- 通过测试数量不是接口覆盖率；测试失败的接口仍可计入“已测试”，但必须单独标记运行失败。
+- 远程服务返回错误不能自动判定为代码缺陷，应区分“测试覆盖”和“执行结果”。
+- 如果接口清单与测试代码不一致，分别报告“未被测试覆盖”和“测试中发现但未登记”。
+- 不为了统计而修改测试代码、环境文件或远程数据。
+
+## 示例结论
+
+```text
+接口路径覆盖率：18/21（85.7%）
+
+已覆盖：16
+部分覆盖：2
+未覆盖：3
+
+主要缺口：
+- /api/user/resetUser/v2 缺少无效 Content-Type 场景
+- /api/rank/rankList 缺少无效鉴权场景
+- /api/mail/{mailId} 仅有成功和不存在场景，缺少参数类型错误场景
+
+说明：上述统计基于静态测试代码映射，不代表远程接口本次执行全部通过。
+```
